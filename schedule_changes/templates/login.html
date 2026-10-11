@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Proflight Agent Portal - Login</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #f4f7f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .auth-container { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 350px; }
+        h2 { color: #004b87; margin-top: 0; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #004b87; color: white; border: none; width: 100%; padding: 12px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        button:hover { background-color: #003665; }
+        .toggle-link { text-align: center; margin-top: 15px; font-size: 13px; color: #004b87; cursor: pointer; }
+        .error { color: #dc3545; font-size: 13px; margin-bottom: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <h2 id="form-title">Agent Sign In</h2>
+        {% if error %}<div class="error">{{ error }}</div>{% endif %}
+        
+        <form method="POST" id="auth-form">
+            {% csrf_token %}
+            <input type="hidden" name="action" id="form-action" value="login">
+            
+            <div class="form-group" id="name-group" style="display: none;">
+                <label>Real Full Name (e.g., Bright Kakoma)</label>
+                <input type="text" name="real_name" placeholder="Bright Kakoma">
+            </div>
+            
+            <div class="form-group">
+                <label>VARS Username (e.g., 6368KK/RC)</label>
+                <input type="text" name="vars_username" placeholder="6368KK/RC" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" id="submit-btn">Sign In</button>
+        </form>
+        
+        <div class="toggle-link" onclick="toggleAuthMode()">Need an account? Sign Up</div>
+    </div>
+
+    <script>
+        function toggleAuthMode() {
+            var actionInput = document.getElementById('form-action');
+            var nameGroup = document.getElementById('name-group');
+            var title = document.getElementById('form-title');
+            var btn = document.getElementById('submit-btn');
+            var toggle = document.querySelector('.toggle-link');
+
+            if (actionInput.value === 'login') {
+                actionInput.value = 'signup';
+                nameGroup.style.display = 'block';
+                title.innerText = 'Agent Sign Up';
+                btn.innerText = 'Create Account';
+                toggle.innerText = 'Already have an account? Sign In';
+            } else {
+                actionInput.value = 'login';
+                nameGroup.style.display = 'none';
+                title.innerText = 'Agent Sign In';
+                btn.innerText = 'Sign In';
+                toggle.innerText = 'Need an account? Sign Up';
+            }
+        }
+    </script>
+</body>
+</html>
