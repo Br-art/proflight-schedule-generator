@@ -26,7 +26,7 @@ class ProcessedBooking(models.Model):
     passengers = models.TextField(blank=True, null=True)
     flights_summary = models.TextField(blank=True, null=True)
     raw_gds = models.TextField(blank=True, null=True)
-    updated_at = models.DateTimeField(auto_auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.pnr
