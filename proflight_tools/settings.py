@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-@yia2tp5j3#_=&s-!riow2v4v@ae+++y4r%$s-roq-i9qnai2t
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['proflight-schedule-generator.onrender.com', 'localhost', '127.0.0.1']
 
 
 # Application definition
