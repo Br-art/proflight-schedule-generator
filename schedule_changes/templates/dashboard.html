@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Proflight Schedule Changes</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; max-width: 1000px; margin: 0 auto; background-color: #f9f9fa; }
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .history-dropdown { position: relative; display: inline-block; }
+        .history-btn { background-color: #6c757d; color: white; padding: 8px 15px; font-size: 14px; border-radius: 4px; border: none; cursor: pointer; }
+        .history-content { display: none; position: absolute; right: 0; background-color: #ffffff; min-width: 250px; box-shadow: 0px 8px 16px rgba(0,0,0,0.2); z-index: 100; border-radius: 4px; border: 1px solid #ccc; max-height: 300px; overflow-y: auto; }
+        .history-content div { color: #333; padding: 8px 15px; text-decoration: none; display: block; font-size: 13px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .history-content div:hover { background-color: #f1f1f1; }
+        .history-dropdown:hover .history-content { display: block; }
+        
+        textarea { width: 100%; height: 150px; padding: 15px; margin-bottom: 20px; font-family: monospace; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background-color: #004b87; color: white; border: none; padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 5px; font-weight: 600; }
+        button:hover { background-color: #003665; }
+        
+        .form-row { display: flex; gap: 15px; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; }
+        .input-group { display: flex; flex-direction: column; flex: 1; min-width: 150px; }
+        .input-group label { font-size: 12px; font-weight: bold; color: #555; margin-bottom: 4px; }
+        .input-group input { padding: 8px; border-radius: 4px; border: 1px solid #ccc; width: 100%; box-sizing: border-box; margin-bottom: 6px; }
+        .submit-btn { padding: 9px 15px; font-size: 14px; height: 35px; border: none; border-radius: 4px; cursor: pointer; color: white; margin-top: 18px; }
+
+        .update-box { background-color: #fff3cd; border-left: 5px solid #ffc107; padding: 20px; margin-top: 20px; border-radius: 5px; }
+        .update-box .submit-btn { background-color: #28a745; }
+        
+        .alert-box { background-color: #f8d7da; border-left: 5px solid #dc3545; padding: 15px 20px; margin-top: 30px; border-top-left-radius: 5px; border-top-right-radius: 5px; border: 1px solid #dc3545; border-bottom: none; }
+        .call-card { background-color: #e8f4fd; border-left: 5px solid #004b87; padding: 25px; margin-top: 20px; border-radius: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .call-card.edit-card { border-left-color: #17a2b8; background-color: #e8f8f5; }
+        .call-card.edit-card .submit-btn { background-color: #17a2b8; }
+        
+        .call-btn { background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; margin-top: 15px; }
+        .call-btn:hover { background-color: #218838; }
+
+        .email-wrapper { display: flex; gap: 20px; background-color: #ffffff; margin-top: 30px; border-radius: 8px; border: 1px solid #e1e1e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; }
+        .email-content { flex: 3; padding: 30px; }
+        .email-sidebar { flex: 1; background-color: #f4f7f6; padding: 30px 20px; border-left: 1px solid #e1e1e1; }
+        
+        .field-row { margin-bottom: 15px; display: flex; align-items: center; gap: 15px; }
+        .field-label { font-weight: bold; width: 60px; color: #555; }
+        .field-value { flex: 1; font-family: Arial, sans-serif; font-size: 14.5px; }
+        .email-body { margin-top: 25px; white-space: pre-wrap; font-family: Arial, sans-serif; font-size: 14.5px; line-height: 1.6; color: #222; }
+        
+        .copy-btn { background-color: #e0e4e8; color: #333; font-size: 12px; padding: 6px 12px; border-radius: 4px; flex-shrink: 0; border: none; cursor: pointer; }
+        .copy-btn:hover { background-color: #cbd2d9; }
+        .copy-body-btn { background-color: #004b87; color: white; width: 100%; margin-top: 15px; padding: 10px; border-radius: 4px; font-size: 14px; border: none; cursor: pointer; }
+        .copy-body-btn:hover { background-color: #003665; }
+        .sidebar-title { font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+        
+        .add-field-link { cursor: pointer; color: #004b87; float: right; font-size: 11px; padding-top: 2px; }
+        .add-field-link:hover { text-decoration: underline; }
+
+        .sidebar-form-group { display: flex; flex-direction: column; margin-bottom: 10px; }
+        .sidebar-form-group label { font-size: 11px; font-weight: bold; color: #555; margin-bottom: 4px; }
+        .sidebar-form-group input { padding: 6px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; margin-bottom: 4px; width: 100%; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <div class="top-header">
+        <div>
+            <h2>Proflight Schedule Change Generator</h2>
+            <p style="color: #666; font-size: 13px; margin: 0;">Logged in as: <b>{{ request.user.userprofile.real_name }}</b> ({{ request.user.username }}) | <a href="{% url 'logout_view' %}" style="color: #dc3545;">Sign Out</a></p>
+        </div>
+        
+        <!-- CHROME-STYLE CATEGORIZED HISTORY DROPDOWN -->
+        <div class="history-dropdown">
+            <button class="history-btn">📋 Recent History ▼</button>
+            <div class="history-content">
+                {% if categorized_history %}
+                    {% for category, bookings in categorized_history.items %}
+                        <div style="font-size: 11px; font-weight: bold; color: #004b87; background: #eef2f5; cursor: default; border-top: 1px solid #ccc; padding: 6px 15px;">{{ category }}</div>
+                        {% for item in bookings %}
+                            <div ondblclick="reloadHistory('{{ item.raw_gds|escapejs }}')" style="padding-left: 20px;">
+                                <b>{{ item.pnr }}</b> - {{ item.contact_name|truncatechars:18 }}
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <div style="cursor: default; padding: 10px 15px;">No history yet.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <form method="POST" action="{% url 'process_pnr' %}" id="generator-form">
+        {% csrf_token %}
+        <textarea name="pnr_text" id="pnr-textarea" placeholder="Paste GDS, 6-letter PNR, or IATA here...">{{ raw_input }}</textarea><br>
+        <button type="submit" onclick="clearTextarea()">Generate / Lookup</button>
+    </form>
+
+    {% if quick_booking %}
+        <div class="call-card">
+            <h3 style="margin-top:0; color: #004b87;">📞 Quick Call: Booking {{ quick_booking.pnr }}</h3>
+            <p><strong>Contact:</strong> {{ quick_booking.contact_name }}</p>
+            <p><strong>Passenger(s):</strong> {{ quick_booking.passengers }}</p>
+            <p><strong>New Flights:</strong><br><span style="white-space: pre-wrap;">{{ quick_booking.flights_summary }}</span></p>
+            {% if quick_booking.phone and quick_booking.phone != "No Phone Listed" %}
+                <a href="tel:{{ quick_booking.phone }}" class="call-btn">📱 Call {{ quick_booking.phone }}</a>
+            {% else %}
+                <p style="color: #dc3545; font-weight: bold;">⚠️ No phone number available.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    {% if agency_to_edit %}
+        <div class="call-card edit-card">
+            <h3 style="margin-top:0; color: #17a2b8;">✏️ Edit Agency Details</h3>
+            <form method="POST" action="{% url 'process_pnr' %}" class="form-row" onsubmit="return confirm('Are you sure you want to update the change?');">
+                {% csrf_token %}
+                <input type="hidden" name="save_agency" value="1">
+                <input type="hidden" name="pnr_text" value="{{ raw_input }}">
+                <input type="hidden" name="new_iata" value="{{ agency_to_edit.iata_number }}">
+                
+                <div style="padding-top: 25px; padding-right: 10px;">
+                    <strong style="white-space: nowrap; font-size: 16px;">IATA {{ agency_to_edit.iata_number }}</strong>
+                </div>
+                <div class="input-group">
+                    <label>Agency Name</label>
+                    <input type="text" name="new_name" value="{{ agency_to_edit.name }}">
+                </div>
+                <div class="input-group">
+                    <label>Emails <span class="add-field-link" onclick="addInput(this, 'new_email', 'Additional Email')">➕ Add</span></label>
+                    <input type="text" name="new_email" value="{{ agency_to_edit.email }}" required>
+                </div>
+                <div class="input-group">
+                    <label>Phones <span class="add-field-link" onclick="addInput(this, 'new_phone', 'Additional Phone')">➕ Add</span></label>
+                    <input type="text" name="new_phone" value="{{ agency_to_edit.phone }}">
+                </div>
+                <button type="submit" class="submit-btn">Update Database</button>
+            </form>
+        </div>
+    {% endif %}
+
+    {% if error %}
+        <p style="color: #dc3545; font-weight: bold; margin-top: 20px;">{{ error }}</p>
+    {% endif %}
+
+    {% if missing_agencies %}
+        <div class="update-box">
+            <h3 style="margin-top:0;">⚠️ Unknown Agency Detected</h3>
+            {% for missing in missing_agencies %}
+                <form method="POST" action="{% url 'process_pnr' %}" class="form-row" onsubmit="return confirm('Are you sure you want to update the change?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="save_agency" value="1">
+                    <input type="hidden" name="pnr_text" value="{{ raw_input }}">
+                    <input type="hidden" name="new_iata" value="{{ missing.iata }}">
+                    
+                    <div style="padding-top: 25px; padding-right: 10px;">
+                        <strong style="white-space: nowrap; font-size: 16px;">IATA {{ missing.iata }}</strong>
+                    </div>
+                    <div class="input-group">
+                        <label>Agency Name</label>
+                        <input type="text" name="new_name" value="{{ missing.name }}">
+                    </div>
+                    <div class="input-group">
+                        <label>Emails <span class="add-field-link" onclick="addInput(this, 'new_email', 'Additional Email')">➕ Add</span></label>
+                        <input type="text" name="new_email" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Phones <span class="add-field-link" onclick="addInput(this, 'new_phone', 'Additional Phone')">➕ Add</span></label>
+                        <input type="text" name="new_phone">
+                    </div>
+                    <button type="submit" class="submit-btn">Save to Database</button>
+                </form>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {% if final_results %}
+        {% for result in final_results %}
+            {% if result.warnings %}
+                <div class="alert-box" style="margin-bottom: -30px; position: relative; z-index: 10;">
+                    <h4 style="margin-top:0; color: #721c24; margin-bottom: 5px;">⚠️ PLEASE REVIEW BEFORE SENDING</h4>
+                    <ul style="color: #721c24; margin-bottom: 0; padding-left: 20px;">
+                        {% for warning in result.warnings %}<li>{{ warning }}</li>{% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            
+            <div class="email-wrapper" {% if result.warnings %}style="border-top-left-radius: 0; border-top-right-radius: 0;"{% endif %}>
+                <div class="email-content">
+                    <div class="field-row">
+                        <div class="field-label">To:</div>
+                        <div class="field-value" id="to-{{ forloop.counter }}">{{ result.to_email }}</div>
+                        <button class="copy-btn" type="button" onclick="copyText('to-{{ forloop.counter }}', this)">Copy</button>
+                    </div>
+                    
+                    <div class="field-row">
+                        <div class="field-label">Subject:</div>
+                        <div class="field-value" id="subj-{{ forloop.counter }}">{{ result.subject }}</div>
+                        <button class="copy-btn" type="button" onclick="copyText('subj-{{ forloop.counter }}', this)">Copy</button>
+                    </div>
+                    
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    
+                    <div class="email-body" id="body-{{ forloop.counter }}">{{ result.body_text }}</div>
+                </div>
+
+                <div class="email-sidebar">
+                    <div class="sidebar-title">Contact Info</div>
+                    <div style="margin-bottom: 25px;">
+                        <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Phone Numbers:</div>
+                        <div style="font-weight: bold; margin-bottom: 10px;" id="phone-{{ forloop.counter }}">{{ result.phone }}</div>
+                        <button class="copy-btn" type="button" style="width: 100%;" onclick="copyText('phone-{{ forloop.counter }}', this)">Copy Phone</button>
+                    </div>
+
+                    {% if result.is_agency and result.iata_no %}
+                    <div style="margin-bottom: 25px; padding-top: 15px; border-top: 1px dashed #ccc;">
+                        <div style="font-size: 12px; color: #17a2b8; font-weight: bold; margin-bottom: 10px;">✏️ Quick Update Agency</div>
+                        <button type="button" id="show-edit-btn-{{ forloop.counter }}" class="copy-body-btn" style="background-color: #17a2b8; margin-top: 0;" onclick="toggleQuickEdit('{{ forloop.counter }}')">✏️ Edit Contacts</button>
+
+                        <form id="quick-form-{{ forloop.counter }}" method="POST" action="{% url 'process_pnr' %}" style="display: none;" onsubmit="return confirm('Are you sure you want to update the change?');">
+                            {% csrf_token %}
+                            <input type="hidden" name="save_agency" value="1">
+                            <input type="hidden" name="pnr_text" value="{{ raw_input }}">
+                            <input type="hidden" name="new_iata" value="{{ result.iata_no }}">
+                            <input type="hidden" name="new_name" value="{{ result.agency_name }}">
+                            
+                            <div class="sidebar-form-group">
+                                <label>Emails <span class="add-field-link" onclick="addInput(this, 'new_email', 'Additional Email')">➕ Add</span></label>
+                                <input type="text" name="new_email" value="{{ result.raw_email }}" placeholder="Emails" required>
+                            </div>
+                            
+                            <div class="sidebar-form-group">
+                                <label>Phones <span class="add-field-link" onclick="addInput(this, 'new_phone', 'Additional Phone')">➕ Add</span></label>
+                                <input type="text" name="new_phone" value="{{ result.raw_phone }}" placeholder="Phones">
+                            </div>
+                            
+                            <button type="submit" class="copy-body-btn" style="margin-top: 10px; background-color: #17a2b8;">💾 Save Updates</button>
+                            <button type="button" class="copy-body-btn" style="margin-top: 5px; background-color: #6c757d;" onclick="toggleQuickEdit('{{ forloop.counter }}')">❌ Cancel</button>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    <div class="sidebar-title" style="margin-top: 30px;">Quick Actions</div>
+                    <button class="copy-body-btn" type="button" onclick="copyText('body-{{ forloop.counter }}', this)">Copy Main Email Body</button>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <script>
+        // Auto-clears textarea after submission
+        function clearTextarea() {
+            setTimeout(function() {
+                document.getElementById('pnr-textarea').value = '';
+            }, 100);
+        }
+
+        // Double-clicking a history item reloads the GDS text and submits it instantly
+        function reloadHistory(gdsText) {
+            var textarea = document.getElementById('pnr-textarea');
+            textarea.value = gdsText;
+            document.getElementById('generator-form').submit();
+        }
+
+        function toggleQuickEdit(id) {
+            var form = document.getElementById('quick-form-' + id);
+            var btn = document.getElementById('show-edit-btn-' + id);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            btn.style.display = btn.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function addInput(element, inputName, placeholderText) {
+            var group = element.closest('.input-group') || element.closest('.sidebar-form-group');
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.name = inputName;
+            input.placeholder = placeholderText;
+            group.appendChild(input);
+        }
+
+        function copyText(elementId, button) {
+            var text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(function() {
+                var originalText = button.innerText;
+                button.innerText = "✓ Copied!";
+                button.style.backgroundColor = "#28a745";
+                button.style.color = "white";
+                setTimeout(function() {
+                    button.innerText = originalText;
+                    button.style.backgroundColor = "";
+                    button.style.color = "";
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
